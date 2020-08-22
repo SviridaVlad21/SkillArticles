@@ -6,9 +6,9 @@ import java.lang.IllegalArgumentException
 
 abstract class BaseViewModel<T>(initState : T) : ViewModel() {
 
-    protected val notifications = MutableLiveData<Event<Notify>>()
+    val notifications = MutableLiveData<Event<Notify>>()
 
-    protected val state: MediatorLiveData<T> = MediatorLiveData<T>().apply {
+    val state: MediatorLiveData<T> = MediatorLiveData<T>().apply {
         value = initState
     }
 
@@ -72,6 +72,8 @@ class Event<out E>(private val content: E){
             content
         }
     }
+
+    fun peekContent(): E = content
 }
 
 class EventObserver<E>(private val onEventUnhandledContent : (E) -> Unit):Observer<Event<E>>{

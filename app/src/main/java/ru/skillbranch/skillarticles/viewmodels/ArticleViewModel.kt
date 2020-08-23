@@ -8,12 +8,13 @@ import ru.skillbranch.skillarticles.extensions.data.toAppSettings
 import ru.skillbranch.skillarticles.extensions.data.toArticlePersonalInfo
 import ru.skillbranch.skillarticles.extensions.format
 
-class ArticleViewModel(private val articleId: String) : BaseViewModel<ArticleState>(ArticleState()), IArticleViewModel {
+class ArticleViewModel(private val articleId: String) : BaseViewModel<ArticleState>(ArticleState()),
+    IArticleViewModel {
 
     private val repository = ArticleRepository
 
-    init{
-        subscribeOnDataSource(getArticleData()){article, state ->
+    init {
+        subscribeOnDataSource(getArticleData()) { article, state ->
             article ?: return@subscribeOnDataSource null
             state.copy(
                 shareLink = article.shareLink,
@@ -25,7 +26,7 @@ class ArticleViewModel(private val articleId: String) : BaseViewModel<ArticleSta
             )
         }
 
-        subscribeOnDataSource(getArticleContent()){content, state ->
+        subscribeOnDataSource(getArticleContent()) { content, state ->
             content ?: return@subscribeOnDataSource null
             state.copy(
                 isLoadingContent = false,
@@ -33,7 +34,7 @@ class ArticleViewModel(private val articleId: String) : BaseViewModel<ArticleSta
             )
         }
 
-        subscribeOnDataSource(getArticlePersonalInfo()){info, state ->
+        subscribeOnDataSource(getArticlePersonalInfo()) { info, state ->
             info ?: return@subscribeOnDataSource null
             state.copy(
                 isLike = info.isLike,
@@ -41,7 +42,7 @@ class ArticleViewModel(private val articleId: String) : BaseViewModel<ArticleSta
             )
         }
 
-        subscribeOnDataSource(repository.getAppSettings()){settings, state ->
+        subscribeOnDataSource(repository.getAppSettings()) { settings, state ->
             state.copy(
                 isDarkMode = settings.isDarkMode,
                 isBigText = settings.isBigText
@@ -60,7 +61,8 @@ class ArticleViewModel(private val articleId: String) : BaseViewModel<ArticleSta
         return repository.loadArticleContent(articleId)
     }
 
-    //load data from db
+    //load data
+    // from db
     override fun getArticleData(): LiveData<ArticleData?> {
         return repository.getArticle(articleId)
     }
@@ -91,8 +93,8 @@ class ArticleViewModel(private val articleId: String) : BaseViewModel<ArticleSta
 
         toggleLike()
 
-        val msg = if(currentState.isLike) Notify.TextMessage("Mark is liked")
-        else{
+        val msg = if (currentState.isLike) Notify.TextMessage("Mark is liked")
+        else {
             Notify.ActionMessage(
                 "Don`t like it anymore",
                 "No, still like it",
@@ -107,8 +109,8 @@ class ArticleViewModel(private val articleId: String) : BaseViewModel<ArticleSta
         val info = currentState.toArticlePersonalInfo()
         repository.updateArticlePersonInfo(info.copy(isBookmark = !info.isBookmark))
 
-        val msg = if(currentState.isBookmark) Notify.TextMessage("Add to bookmarks")
-        else{
+        val msg = if (currentState.isBookmark) Notify.TextMessage("Add to bookmarks")
+        else {
             Notify.TextMessage("Remove from bookmarks")
         }
 
@@ -125,11 +127,11 @@ class ArticleViewModel(private val articleId: String) : BaseViewModel<ArticleSta
     }
 
     override fun handleSearchMode(isSearch: Boolean) {
-
+        updateState { it.copy(isSearch = isSearch) }
     }
 
     override fun handleSearch(query: String?) {
-
+        updateState { it.copy(searchQuery = query) }
     }
 }
 

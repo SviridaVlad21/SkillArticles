@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
 import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.Toolbar
@@ -26,7 +27,9 @@ import ru.skillbranch.skillarticles.viewmodels.Notify
 class RootActivity : AppCompatActivity() {
     private lateinit var viewModel : ArticleViewModel
 
-    private lateinit var mSearchView: SearchView
+    private var isSearchViewExpended = false
+    private var searchQueryText : String? = null
+
     private val SEARCH_KEY = "ru.skillbranch.skillarticles.RootActivity.search_key"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,6 +45,8 @@ class RootActivity : AppCompatActivity() {
         viewModel = ViewModelProviders.of(this, vmFactory).get(ArticleViewModel::class.java)
         viewModel.observeState(this){
             renderUI(it)
+            isSearchViewExpended = it.isSearch
+            searchQueryText = it.searchQuery
         }
 
         viewModel.observeNotifications(this){
@@ -49,11 +54,43 @@ class RootActivity : AppCompatActivity() {
         }
     }
 
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         super.onCreateOptionsMenu(menu)
         menuInflater.inflate(R.menu.toolbar_menu, menu)
         val menuItem = menu?.findItem(R.id.action_search)
-        mSearchView = MenuItemCompat.getActionView(menuItem) as SearchView
+        val searchView : SearchView = menuItem?.actionView as SearchView
+
+        if(isSearchViewExpended){
+            menuItem.expandActionView()
+            searchView.setQuery(searchQueryText, false)
+            searchView.clearFocus()
+        }
+
+        menuItem.setOnActionExpandListener(object: MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
+                viewModel.handleSearchMode(true)
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
+                viewModel.handleSearchMode(false)
+                return true
+            }
+        })
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                viewModel.handleSearch(newText)
+                return true
+            }
+
+        })
+
 
         return true
     }

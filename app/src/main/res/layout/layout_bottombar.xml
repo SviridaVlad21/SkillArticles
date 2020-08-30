@@ -37,7 +37,7 @@
             android:focusable="true"/>
 
         <ru.skillbranch.skillarticles.ui.custom.CheckableImageView
-            android:id="@+id/bt_settings"
+            android:id="@+id/btn_settings"
             style="@style/BottomBarIcon"
             android:src="@drawable/ic_format_size_black_24dp"
             app:layout_constraintBottom_toBottomOf="parent"

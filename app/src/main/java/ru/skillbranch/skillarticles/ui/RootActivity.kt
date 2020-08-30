@@ -132,12 +132,12 @@ class RootActivity : AppCompatActivity() {
         bt_like.setOnClickListener { viewModel.handleLike() }
         bt_bookmark.setOnClickListener { viewModel.handleBookmark() }
         bt_share.setOnClickListener{ viewModel.handleShare() }
-        bt_settings.setOnClickListener { viewModel.handleToggleMenu() }
+        btn_settings.setOnClickListener { viewModel.handleToggleMenu() }
     }
 
     private fun renderUI(data: ArticleState) {
         //bind submenu state
-        bt_settings.isChecked = data.isShowMenu
+        btn_settings.isChecked = data.isShowMenu
         if(data.isShowMenu) submenu.open() else submenu.close()
 
         //bind article person data

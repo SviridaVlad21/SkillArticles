@@ -1,17 +1,13 @@
 package ru.skillbranch.skillarticles.ui
 
 import android.os.Bundle
-import android.os.PersistableBundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.ImageView
 import android.widget.Toolbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SearchView
-import androidx.core.view.MenuItemCompat
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_root.*
@@ -25,16 +21,15 @@ import ru.skillbranch.skillarticles.viewmodels.BaseViewModel
 import ru.skillbranch.skillarticles.viewmodels.Notify
 
 class RootActivity : AppCompatActivity() {
-    private lateinit var viewModel : ArticleViewModel
+    private lateinit var viewModel: ArticleViewModel
 
     private var isSearchViewExpended = false
-    private var searchQueryText : String? = null
+    private var searchQueryText: String? = null
 
     private val SEARCH_KEY = "ru.skillbranch.skillarticles.RootActivity.search_key"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
 
         setContentView(R.layout.activity_root)
         setupToolbar()
@@ -43,13 +38,13 @@ class RootActivity : AppCompatActivity() {
 
         val vmFactory = BaseViewModel.ViewModelFactory("0")
         viewModel = ViewModelProviders.of(this, vmFactory).get(ArticleViewModel::class.java)
-        viewModel.observeState(this){
+        viewModel.observeState(this) {
             renderUI(it)
             isSearchViewExpended = it.isSearch
             searchQueryText = it.searchQuery
         }
 
-        viewModel.observeNotifications(this){
+        viewModel.observeNotifications(this) {
             renderNotification(it)
         }
     }
@@ -59,15 +54,15 @@ class RootActivity : AppCompatActivity() {
         super.onCreateOptionsMenu(menu)
         menuInflater.inflate(R.menu.toolbar_menu, menu)
         val menuItem = menu?.findItem(R.id.action_search)
-        val searchView : SearchView = menuItem?.actionView as SearchView
+        val searchView: SearchView = menuItem?.actionView as SearchView
 
-        if(isSearchViewExpended){
+        if (isSearchViewExpended) {
             menuItem.expandActionView()
             searchView.setQuery(searchQueryText, false)
             searchView.clearFocus()
         }
 
-        menuItem.setOnActionExpandListener(object: MenuItem.OnActionExpandListener {
+        menuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
             override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
                 viewModel.handleSearchMode(true)
                 return true
@@ -79,7 +74,7 @@ class RootActivity : AppCompatActivity() {
             }
         })
 
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return true
             }
@@ -100,20 +95,21 @@ class RootActivity : AppCompatActivity() {
             .setAnchorView(bottombar)
             .setActionTextColor(getColor(R.color.color_accent_dark))
 
-        when(notify){
-            is Notify.TextMessage -> { /*nothing*/}
+        when (notify) {
+            is Notify.TextMessage -> { /*nothing*/
+            }
             is Notify.ActionMessage -> {
                 snackbar.setActionTextColor(getColor(R.color.color_accent_dark))
-                snackbar.setAction(notify.actionLabel){
+                snackbar.setAction(notify.actionLabel) {
                     notify.actionHandler?.invoke()
                 }
             }
-            is  Notify.ErrorMessage -> {
-                with(snackbar){
+            is Notify.ErrorMessage -> {
+                with(snackbar) {
                     setBackgroundTint(getColor(R.color.design_default_color_error))
                     setTextColor(getColor(android.R.color.white))
                     setActionTextColor(getColor(android.R.color.white))
-                    setAction(notify.errorLabel){
+                    setAction(notify.errorLabel) {
                         notify.errorHandler?.invoke()
                     }
                 }
@@ -125,20 +121,20 @@ class RootActivity : AppCompatActivity() {
     private fun setupSubmenu() {
         btn_text_up.setOnClickListener { viewModel.handleUpText() }
         btn_text_down.setOnClickListener { viewModel.handleDownText() }
-        switch_mode.setOnClickListener{ viewModel.handleNightMode() }
+        switch_mode.setOnClickListener { viewModel.handleNightMode() }
     }
 
     private fun setupBottomBar() {
         bt_like.setOnClickListener { viewModel.handleLike() }
         bt_bookmark.setOnClickListener { viewModel.handleBookmark() }
-        bt_share.setOnClickListener{ viewModel.handleShare() }
-        bt_settings.setOnClickListener { viewModel.handleToggleMenu() }
+        bt_share.setOnClickListener { viewModel.handleShare() }
+        btn_settings.setOnClickListener { viewModel.handleToggleMenu() }
     }
 
     private fun renderUI(data: ArticleState) {
         //bind submenu state
-        bt_settings.isChecked = data.isShowMenu
-        if(data.isShowMenu) submenu.open() else submenu.close()
+        btn_settings.isChecked = data.isShowMenu
+        if (data.isShowMenu) submenu.open() else submenu.close()
 
         //bind article person data
         bt_like.isChecked = data.isLike
@@ -147,32 +143,33 @@ class RootActivity : AppCompatActivity() {
         //bind submenu views
         switch_mode.isChecked = data.isDarkMode
         delegate.localNightMode =
-                if(data.isDarkMode) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
+            if (data.isDarkMode) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
 
-        if(data.isBigText){
+        if (data.isBigText) {
             tv_text_content.textSize = 18f
             btn_text_up.isChecked = true
             btn_text_down.isChecked = false
-        }else{
+        } else {
             tv_text_content.textSize = 14f
             btn_text_up.isChecked = false
             btn_text_down.isChecked = true
         }
 
         //bind content
-        tv_text_content.text = if(data.isLoadingContent) "Loading..." else data.content.first() as String
+        tv_text_content.text =
+            if (data.isLoadingContent) "Loading..." else data.content.first() as String
 
         //bind toolbar
         toolbar.title = data.title ?: "loading"
         toolbar.subtitle = data.category ?: "loading"
-        if(data.categoryIcon != null) toolbar.logo = getDrawable(data.categoryIcon as Int)
+        if (data.categoryIcon != null) toolbar.logo = getDrawable(data.categoryIcon as Int)
     }
 
     private fun setupToolbar() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        val logo = if(toolbar.childCount > 2) toolbar.getChildAt(2) as ImageView else null
+        val logo = if (toolbar.childCount > 2) toolbar.getChildAt(2) as ImageView else null
         logo?.scaleType = ImageView.ScaleType.CENTER_CROP
         val lp = logo?.layoutParams as? Toolbar.LayoutParams
         lp?.let {

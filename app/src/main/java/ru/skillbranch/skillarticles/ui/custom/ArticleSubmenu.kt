@@ -7,18 +7,20 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.ViewAnimationUtils
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import com.google.android.material.shape.MaterialShapeDrawable
 import ru.skillbranch.skillarticles.extensions.dpToPx
 import ru.skillbranch.skillarticles.R
+import ru.skillbranch.skillarticles.ui.custom.behaviors.SubmenuBehavior
 import kotlin.math.hypot
 
 class ArticleSubmenu @JvmOverloads constructor(
-    context : Context,
-    attrs : AttributeSet? = null,
-    defStyleAttr : Int = 0
-) : ConstraintLayout(context, attrs, defStyleAttr){
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : ConstraintLayout(context, attrs, defStyleAttr), CoordinatorLayout.AttachedBehavior {
     var isOpen = false
 
     private var centerX: Float = context.dpToPx(200)
@@ -26,25 +28,33 @@ class ArticleSubmenu @JvmOverloads constructor(
 
     init {
         View.inflate(context, R.layout.layout_submenu, this)
-        //add material bg for handle elevation and color surface
+        /**
+         * Если вью ближе к нам (elevation), то "свет" по-другому падает,поэтому система автоматически выделяет вьюху.
+         * В появляются границы и выделяется цветом
+         * Такое поведение автоматом реализует toolbar. Добавляем такое повeдение своей вьюхе**/
         val materialBg = MaterialShapeDrawable.createWithElevationOverlay(context)
         materialBg.elevation = elevation
         background = materialBg
     }
 
-    fun open(){
-        if(isOpen || !isAttachedToWindow) return
+    override fun getBehavior(): CoordinatorLayout.Behavior<*> {
+        return SubmenuBehavior()
+    }
+
+    // isAttachedToWindow - проверяем прикрепилась ли вьюха
+    fun open() {
+        if (isOpen || !isAttachedToWindow) return
         isOpen = true
         animatedShow()
     }
 
-    fun close(){
-        if(!isOpen || !isAttachedToWindow) return
+    fun close() {
+        if (!isOpen || !isAttachedToWindow) return
         isOpen = false
         animatedHide()
     }
 
-    private fun animatedShow(){
+    private fun animatedShow() {
         val endRadius = hypot(centerX, centerY)
         val anim = ViewAnimationUtils.createCircularReveal(
             this,
@@ -61,7 +71,8 @@ class ArticleSubmenu @JvmOverloads constructor(
         anim.start()
     }
 
-    private fun animatedHide(){
+
+    private fun animatedHide() {
         val startRadius = hypot(centerX, centerY)
         val anim = ViewAnimationUtils.createCircularReveal(
             this,
@@ -78,9 +89,6 @@ class ArticleSubmenu @JvmOverloads constructor(
         anim.start()
     }
 
-
-
-
     override fun onSaveInstanceState(): Parcelable? {
         val savedState = SavedState(super.onSaveInstanceState())
         savedState.ssIsOpen = isOpen
@@ -90,33 +98,35 @@ class ArticleSubmenu @JvmOverloads constructor(
     override fun onRestoreInstanceState(state: Parcelable?) {
         super.onRestoreInstanceState(state)
 
-        if(state is SavedState){
+        if (state is SavedState) {
             isOpen = state.ssIsOpen
-            if(isOpen) visibility = View.VISIBLE else visibility = View.GONE
+            if (isOpen) visibility = View.VISIBLE else visibility = View.GONE
         }
     }
 
-    private class SavedState : BaseSavedState, Parcelable{
-        var ssIsOpen : Boolean = false
+    private class SavedState : BaseSavedState, Parcelable {
 
-        constructor(superState: Parcelable?): super(superState)
+        var ssIsOpen: Boolean = false
 
-        constructor(src: Parcel) : super(src){
+        constructor(superState: Parcelable?) : super(superState)
+
+        constructor(src: Parcel) : super(src) {
             ssIsOpen = src.readInt() == 1
         }
 
         override fun writeToParcel(out: Parcel?, flags: Int) {
             super.writeToParcel(out, flags)
-            out?.writeInt(if(ssIsOpen) 1 else 0)
+            out?.writeInt(if (ssIsOpen) 1 else 0)
         }
 
         override fun describeContents() = 0
 
-        companion object CREATOR : Parcelable.Creator<SavedState>{
+        companion object CREATOR : Parcelable.Creator<SavedState> {
+
             override fun createFromParcel(parcel: Parcel) = SavedState(parcel)
 
             override fun newArray(size: Int): Array<SavedState?> = arrayOfNulls(size)
-
         }
+
     }
 }
